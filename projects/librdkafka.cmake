@@ -1,0 +1,84 @@
+########################################
+# librdkafka
+########################################
+xpProOption(librdkafka)
+set(VER v1.5.3)
+set(REPO https://github.com/edenhill/librdkafka)
+set(REPO_UPSTREAM https://github.com/edenhill/librdkafka)
+set(PRO_LIBRDKAFKA
+  NAME librdkafka
+  WEB "librdkafka" ${REPO_UPSTREAM} "librdkafka on github"
+  LICENSE "open" ${REPO_UPSTREAM}/blob/master/LICENSE "2-clause BSD license"
+  DESC "librdkafka is a C library implementation of the Apache Kafka protocol, containing both Producer and Consumer support -- [windows-only patch](../patches/librdkafka-windows.patch)"
+  REPO "repo" ${REPO} "distributePro fork of librdkafka repo on github"
+  VER ${VER}
+  GIT_ORIGIN git://github.com/edenhill/librdkafka.git
+  GIT_UPSTREAM git://github.com/edenhill/librdkafka.git
+  GIT_TAG ${VER} # what to 'git checkout'
+  GIT_REF ${VER} # create path from this tag to 'git checkout'
+  DLURL ${REPO_UPSTREAM}/archive/${VER}.tar.gz
+  DLMD5 17017d9bdaf1398087d1f0dcad2e5cc7
+  DLNAME librdkafka-${VER}.tar.gz
+  PATCH ${PATCH_DIR}/librdkafka.patch
+  DIFF ${REPO}/compare/edenhill:
+  )
+########################################
+# patch
+function(patch_librdkafka)
+  if(NOT (XP_DEFAULT OR XP_PRO_LIBRDKAFKA))
+    return()
+  endif()
+
+  xpPatchProject(${PRO_LIBRDKAFKA})
+
+  #TODO Verify that this patch is still necessary now that it is being built via Cmake
+  if(WIN32)
+    # setup the patch file with knowledge of the externpro directory
+    set(tmpPatchFile ${CMAKE_BINARY_DIR}/xpbase/tmp/librdkafka_repo/librdkafka-windows.patch)
+    configure_file(${PATCH_DIR}/librdkafka-windows.patch
+                   ${tmpPatchFile} NEWLINE_STYLE UNIX)
+
+    ExternalProject_Get_Property(librdkafka SOURCE_DIR)
+    ExternalProject_Add_Step(librdkafka librdkafka_win_patch
+      WORKING_DIRECTORY ${SOURCE_DIR}
+      COMMAND ${GIT_EXECUTABLE} apply ${tmpPatchFile}
+      DEPENDEES patch
+    )
+  endif()
+endfunction(patch_librdkafka)
+########################################
+# Add zlib to the desired target
+macro(addLibs target)
+  if(WIN32)
+    message("adding libs to ${target}")
+    target_link_libraries(${target}
+      ${XP_ROOTDIR}/lib/zlibstatic-s.lib
+      ${XP_ROOTDIR}/lib/crypto-s.lib
+      ${XP_ROOTDIR}/lib/ssl-s.lib)
+  endif()
+endmacro()
+########################################
+# build
+function(build_librdkafka)
+  if(NOT (XP_DEFAULT OR XP_PRO_LIBRDKAFKA))
+    return()
+  endif()
+
+  configure_file(${PRO_DIR}/use/usexp-librdkafka-config.cmake ${STAGE_DIR}/share/cmake/
+    @ONLY NEWLINE_STYLE LF
+  )
+
+  xpSetPostfix()
+  # Ensure both the C and C++ versions are built with the -fPIC flag
+  xpStringAppendIfDne(CMAKE_CXX_FLAGS "-fPIC")
+  xpStringAppendIfDne(CMAKE_C_FLAGS "-fPIC")
+  set(XP_CONFIGURE
+      -DRDKAFKA_BUILD_STATIC=on
+      -DCMAKE_DEBUG_POSTFIX=${CMAKE_DEBUG_POSTFIX}
+      -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+      -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+      -DWITH_SSL:BOOL=off
+     )
+  xpCmakeBuild(librdkafka "" "${XP_CONFIGURE}")
+
+endfunction()

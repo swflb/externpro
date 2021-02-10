@@ -1,0 +1,42 @@
+diff --git a/src-cpp/CMakeLists.txt b/src-cpp/CMakeLists.txt
+index a7b3e83e..21a27a79 100644
+--- a/src-cpp/CMakeLists.txt
++++ b/src-cpp/CMakeLists.txt
+@@ -84,12 +84,13 @@ if(RDKAFKA_BUILD_STATIC)
+   )
+ endif()
+
++set_target_properties(rdkafka++ PROPERTIES DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
+ install(
+     TARGETS rdkafka++
+     EXPORT "${targets_export_name}"
+-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
++    LIBRARY DESTINATION lib
++    ARCHIVE DESTINATION lib
++    RUNTIME DESTINATION bin
+     INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+ )
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 3c49a902..bad2cad2 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -328,12 +328,13 @@ if(RDKAFKA_BUILD_STATIC)
+   )
+ endif()
+
++set_target_properties(rdkafka PROPERTIES DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
+ install(
+     TARGETS rdkafka
+     EXPORT "${targets_export_name}"
+-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
++    LIBRARY DESTINATION lib
++    ARCHIVE DESTINATION lib
++    RUNTIME DESTINATION bin
+     INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+ )
+

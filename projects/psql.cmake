@@ -56,7 +56,6 @@ function(build_psql)
     patch_psql()
   endif()
 
-  message(STATUS "\n *****  psql *******\n")
   #xpFindPkg(PKGS OpenSSL)
 
   configure_file(${PRO_DIR}/use/usexp-psql-config.cmake
